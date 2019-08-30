@@ -1,0 +1,51 @@
+server {
+    listen 80;
+    server_name monkey.union.dev;
+
+    access_log /data/logs/nginx/monkey.log webapp;
+    error_log /data/logs/nginx/monkey_error.log;
+    client_max_body_size 25M;
+    default_type text/html;
+    charset utf-8;
+    error_page 404  /common/show404.html;
+    index index.html index.htm index.php;
+
+
+    root /data/www/manage_union/;
+    set $root_real '/data/www/manage_union/';
+    try_files $uri $uri/ @rewrite;
+
+    location @rewrite {
+        #rewrite ^/api/(.*)$ /index.php?_url=/$1&$args last;
+        #rewrite ^(.*)$ /html/$1 last;
+    }
+
+    location / {
+       index index.html index.htm index.php;
+       root /data/www/manage_union/html/;
+    }
+
+    location /api/ {
+       index index.html index.htm index.php;
+       root /data/www/manage_union/;
+       rewrite ^/api/(.*)$ /index.php?_url=/$1&$args last;
+    }
+
+    location ~ \.php {
+        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_index /index.php;
+        include fastcgi_params;
+        fastcgi_split_path_info       ^(.+\.php)(/.+)$;
+        fastcgi_param PATH_INFO       $fastcgi_path_info;
+        fastcgi_param PATH_TRANSLATED $root_real$fastcgi_path_info;
+        fastcgi_intercept_errors on;
+        fastcgi_param SCRIPT_FILENAME $root_real$fastcgi_script_name;
+        #sysguard on;
+        #sysguard_load load=24;
+        fastcgi_param SY_APPLICATION_ENV   local;    }
+
+
+    location ~ /\.ht {
+        deny all;
+    }
+}

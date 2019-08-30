@@ -1,0 +1,90 @@
+server {
+        listen 80;
+        server_name api.quanmin.tv;
+
+        access_log /data/logs/nginx/api.quanmin.tv_access.log webapp;
+        error_log /data/logs/nginx/api.quanmin.tv_error.log;
+        client_max_body_size 25M;
+        default_type text/html;
+        charset utf-8;
+        error_page 404  /common/show404.html;
+        index index.html index.htm index.php;
+
+        location / {
+            root /data/www/quanmin/php-api-live/public/;
+            set $root_real '/data/www/quanmin/php-api-live/public/';
+            try_files $uri $uri/ /index.php?_url=$uri&$args;
+        }
+
+        set $prerender 0;
+        if ($prerender = 0) {
+            rewrite ^/v/(lpl|44397|3130174|3612754|3500015|4184628|4251849|3726876|2616172|4426290|4426794|5258077|5295206|5295217|5295237|5295632)/?$ /static/pages/room.html;
+            rewrite ^/star/(lpl|44397|3130174|3612754|3500015|4184628|4251849|3726876|2616172|4426290|4426794|5258077|5295206|5295217|5295237|5295632)/?$ /static/pages/star.html;
+            #rewrite ^/v/(lpl|44397|3130174|3612754|3500015|4184628|4251849|3726876|5258077|5295206|5295217|5295237|5295632)/?$ /static/pages/room.html;
+            #rewrite ^/star/(lpl|44397|3130174|3612754|3500015|4184628|4251849|3726876|5258077|5295206|5295217|5295237|5295632)/?$ /static/pages/star.html;
+            #rewrite ^/star/(4426290|4426794|4426782|2616172|4426770|4426758|4426678) /v/$1 permanent;
+            rewrite ^/v/\w+/?$ /static/v2/boot/main/main.html;
+            rewrite ^/game/beauty/?$ http://s.quanmin.tv permanent;
+            rewrite ^/game/\w+/?$ /static/v2/boot/main/main.html;
+            rewrite ^/category/?$ /static/v2/boot/main/main.html;
+            rewrite ^/star/\w+/?$ /static/v2/boot/main/main.html;
+            rewrite ^/search/?$ /static/v2/boot/main/main.html;
+            rewrite ^/404/?$ /static/v2/boot/main/main.html;
+            # rewrite ^/v/\w+/?$ /static/pages/room.html;
+            # rewrite ^/star/\w+/?$ /static/pages/star.html;
+            # rewrite ^/game/\w+/?$ /static/pages/list.html;
+            # rewrite ^/game/\w+/\w+?$ /static/pages/list.html;
+            # rewrite ^/category/?$ /static/pages/category.html;
+            rewrite ^/my/?$ /static/pages/users/index.html;
+            rewrite ^/article/?$ /static/pages/articlelist.html;
+            rewrite ^/article/p\d+/?$ /static/pages/articlelist.html;
+            rewrite ^/article/\w+/?$ /static/pages/article.html;
+            rewrite ^/embed/\w+/?$ /static/pages/embed.html;
+            rewrite ^/pay/?$  /static/pages/pay/payment.html;
+            rewrite ^/pay/charge/?$  /static/pages/pay/pay.html;
+            rewrite ^/pay/result/?$  /static/pages/pay/paywinner.html;
+            rewrite ^/pay-test/?$ /static/pages/payment.html;
+            rewrite ^/2345/\w+/?$ /static/pages/2345.html;
+            rewrite ^/laoyuegou/\w+/?$ /static/pages/laoyuegou.html;
+            rewrite ^/yileyou/\w+/?$ /static/pages/yileyou.html;
+            rewrite ^/baidu/\w+/?$ /static/pages/baidu.html;
+            rewrite ^/youjiu/\w+/?$ /static/pages/channel/youjiu.html;
+            rewrite ^/sina/\w+/?$ /static/pages/channel/sina.html;
+            rewrite ^/acfun/\w+/?$ /static/pages/embed.html;
+            rewrite ^/youxi/?$ http://static.2144gy.com/web/qm/iframe.html;
+            #rewrite ^/article/?$ /static/pages/articlelist.html;
+        }
+
+        location ~ ^/(my|homeapi|static|json|swf|files|v|pay)/ {
+            proxy_pass http://112.65.220.39;
+            proxy_http_version 1.1;
+            proxy_set_header Connection "";
+            proxy_connect_timeout 5;
+            proxy_send_timeout 15;
+            proxy_set_header Host www.quanmin.tv;
+            proxy_set_header X-Forwarded-Server www.quanmin.tv;
+            expires 30d;
+        }
+
+        location ~ \.php {
+            fastcgi_pass 127.0.0.1:9000;
+            fastcgi_index /index.php;
+            include fastcgi_params;
+            fastcgi_split_path_info       ^(.+\.php)(/.+)$;
+            fastcgi_param PATH_INFO       $fastcgi_path_info;
+            fastcgi_param PATH_TRANSLATED $root_real$fastcgi_path_info;
+            fastcgi_intercept_errors on;
+            fastcgi_param SCRIPT_FILENAME $root_real$fastcgi_script_name;
+            #sysguard on;
+            #sysguard_load load=24;
+            fastcgi_param SY_APPLICATION_ENV       local;
+        }
+
+        location ~ /\.ht {
+            deny all;
+        }
+
+        location = /check.html {
+            root /data/www/;
+        }
+}

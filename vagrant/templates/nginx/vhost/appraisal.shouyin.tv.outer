@@ -1,0 +1,40 @@
+server {
+	listen       80;
+	server_name appraisal.shouyin.tv;
+	index index.html index.htm index.php;
+
+	set $root_path '/data/www/project-score/';
+
+	try_files $uri $uri/ /index.php?_url=$uri&$args;
+	client_max_body_size 50m;
+
+	access_log /data/logs/nginx/project-score.log;
+	error_log /data/logs/nginx/project-score.log;
+
+	location ^~ /api/ {
+	   index index.html index.htm index.php;
+	   set $root_path  /data/www/project-score/public/;
+	   rewrite ^/api/(.*)$ /index.php?_url=/$1&$args last;
+	}
+
+	location / {
+		   index index.html index.htm index.php;
+		   set $root_path  /data/www/project-score/html;
+	}
+
+	root $root_path;
+
+	location ~ \.php {
+		fastcgi_pass 127.0.0.1:9000;
+	fastcgi_buffer_size 16k;
+	fastcgi_buffers 4 16k;
+		#fastcgi_pass unix:/usr/local/var/run/php5-fpm.sock;
+		fastcgi_index /index.php;
+		include        fastcgi_params;
+		fastcgi_split_path_info       ^(.+\.php)(/.+)$;
+		fastcgi_param PATH_INFO       $fastcgi_path_info;
+		fastcgi_param PATH_TRANSLATED $root_path$fastcgi_path_info;
+		fastcgi_param SCRIPT_FILENAME $root_path$fastcgi_script_name;
+		fastcgi_param SY_APPLICATION_ENV       local;
+	}
+}

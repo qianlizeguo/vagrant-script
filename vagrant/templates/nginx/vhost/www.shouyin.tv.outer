@@ -1,0 +1,33 @@
+server {
+        listen       80;
+        listen       8088;
+        server_name  www.shouyintv.dev;
+
+        access_log /data/logs/nginx/h5_access.log webapp;
+        error_log /data/logs/nginx/h5_error.log;
+
+        index index.html index.htm index.php;
+        set $root_path '/data/www/huluwa/app_h5/website/';
+        root $root_path;
+        try_files $uri $uri/ @rewrite;
+        rewrite ^/r/(.*) http://$1 permanent;
+        location @rewrite {
+            rewrite ^/(.*)$ /index.php?_url=/$1;
+        }
+
+        add_header 'Access-Control-Allow-Origin' '*';
+        add_header 'Access-Control-Allow-Credentials' 'true';
+        add_header 'Access-Control-Allow-Headers' 'Authorization,Content-Type,Accept,Origin,User-Agent,DNT,Cache-Control,X-Mx-ReqToken';
+        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, PUT, DELETE';
+
+        location ~ \.php {
+            fastcgi_pass 127.0.0.1:9000;
+            fastcgi_index /index.php;
+            include        fastcgi_params;
+            fastcgi_split_path_info       ^(.+\.php)(/.+)$;
+            fastcgi_param PATH_INFO       $fastcgi_path_info;
+            fastcgi_param PATH_TRANSLATED $document_root$fastcgi_path_info;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            fastcgi_param SY_APPLICATION_ENV local_sy;
+        }
+}
